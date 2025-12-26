@@ -550,6 +550,71 @@ if #failedModules > 0 then
 end
 
 -- ============================================
+-- ✅ AUTOFAVORITE FALLBACK LOADER (TAMBAHKAN INI)
+-- ============================================
+local autoFavFallbackThread = task.spawn(function()
+    task.wait(0.5) -- Wait for other modules to settle
+    
+    if not Modules["AutoFavorite"] then
+        warn("⚠️ AutoFavorite not loaded via SecurityLoader, attempting direct load...")
+        
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet("https://raw.githubusercontent.com/akmiliadevi/Tugas_Kuliah/refs/heads/main/AutoFavorite.lua"))()
+        end)
+        
+        if success and result then
+            -- Verify module structure
+            if type(result) ~= "table" then
+                warn("❌ AutoFavorite: Invalid module type (expected table, got " .. type(result) .. ")")
+                table.insert(failedModules, "AutoFavorite")
+                ModuleStatus["AutoFavorite"] = "❌"
+                return
+            end
+            
+            -- Check required functions
+            local requiredFunctions = {
+                "Start", "Stop", "GetAllTiers", "GetAllVariants", 
+                "EnableTiers", "EnableVariants", "ClearTiers", "ClearVariants"
+            }
+            
+            local missingFunctions = {}
+            for _, funcName in ipairs(requiredFunctions) do
+                if type(result[funcName]) ~= "function" then
+                    table.insert(missingFunctions, funcName)
+                end
+            end
+            
+            if #missingFunctions > 0 then
+                warn("❌ AutoFavorite: Missing functions:", table.concat(missingFunctions, ", "))
+                table.insert(failedModules, "AutoFavorite")
+                ModuleStatus["AutoFavorite"] = "❌"
+                return
+            end
+            
+            -- Module is valid, register it
+            Modules["AutoFavorite"] = result
+            loadedModules = loadedModules + 1
+            ModuleStatus["AutoFavorite"] = "✅"
+            
+            print("✅ AutoFavorite loaded via direct fallback!")
+            print("   ✓ All required functions present")
+            
+            SendNotification("AutoFavorite", "✓ Module loaded successfully!", 3)
+        else
+            warn("❌ AutoFavorite direct load failed:", tostring(result))
+            table.insert(failedModules, "AutoFavorite")
+            ModuleStatus["AutoFavorite"] = "❌"
+            
+            SendNotification("Error", "AutoFavorite failed to load!\nCheck console for details.", 5)
+        end
+    else
+        print("✅ AutoFavorite already loaded from SecurityLoader")
+    end
+end)
+
+ConnectionManager:AddThread(autoFavFallbackThread)
+
+-- ============================================
 -- MODULE GETTER WITH ERROR HANDLING
 -- ============================================
 local function GetModule(name)
