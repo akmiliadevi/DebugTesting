@@ -411,7 +411,6 @@ local ModuleList = {
     "NoFishingAnimation", "LockPosition", "AutoEquipRod", "DisableCutscenes",
     "DisableExtras", "AutoTotem3X", "SkinAnimation", "WalkOnWater",
     "TeleportModule", "TeleportToPlayer", "SavedLocation", "EventTeleportDynamic",
-    "AutoQuestModule", "AutoTemple", "TempleDataReader",
     "AutoSell", "AutoSellTimer", "MerchantSystem", "RemoteBuyer", "AutoBuyWeather",
     "FreecamModule", "UnlimitedZoomModule", "AntiAFK", "UnlockFPS", "FPSBooster", "DisableRendering", "MovementModule"
 }
