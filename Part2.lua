@@ -1,5 +1,5 @@
 -- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSION
--- Core Setup & Module Loading System
+-- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
 
@@ -41,7 +41,15 @@ local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local localPlayer = Players.LocalPlayer
 
-repeat task.wait() until localPlayer:FindFirstChild("PlayerGui")
+-- ✅ IMPROVED: Timeout untuk PlayerGui
+local timeoutCounter = 0
+repeat 
+    task.wait(0.1)
+    timeoutCounter = timeoutCounter + 1
+    if timeoutCounter > 100 then
+        error("❌ FATAL: PlayerGui tidak ditemukan setelah 10 detik!")
+    end
+until localPlayer:FindFirstChild("PlayerGui")
 
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
@@ -129,6 +137,17 @@ local function SendNotification(title, text, duration)
 end
 
 -- ============================================
+-- DEBUG LOGGING (Optional - can be disabled)
+-- ============================================
+local DEBUG_MODE = false -- Set to true for detailed logs
+
+local function DebugLog(message)
+    if DEBUG_MODE then
+        print("[LYNX DEBUG] " .. tostring(message))
+    end
+end
+
+-- ============================================
 -- LOADING NOTIFICATION (Optimized)
 -- ============================================
 local LoadingNotification = {
@@ -143,6 +162,8 @@ local LoadingNotification = {
 function LoadingNotification.Create()
     if LoadingNotification.Active then return end
     LoadingNotification.Active = true
+    
+    DebugLog("Creating loading notification UI")
     
     pcall(function()
         local notifGui = new("ScreenGui", {
@@ -257,6 +278,8 @@ end
 function LoadingNotification.Complete(success, loadedCount, totalCount)
     if not LoadingNotification.Active then return end
     
+    DebugLog(string.format("Loading complete: %s (%d/%d)", success and "SUCCESS" or "FAILED", loadedCount, totalCount))
+    
     pcall(function()
         if LoadingNotification.TitleLabel then
             LoadingNotification.TitleLabel.Text = success and "Lynx Ready!" or "Loading Complete"
@@ -300,7 +323,7 @@ function LoadingNotification.Complete(success, loadedCount, totalCount)
 end
 
 -- ============================================
--- MODULE LOADING (Optimized)
+-- MODULE LOADING (FIXED & IMPROVED)
 -- ============================================
 local Modules = {}
 local ModuleStatus = {}
@@ -312,16 +335,49 @@ local CRITICAL_MODULES = {"HideStats", "Webhook", "Notify"}
 
 LoadingNotification.Create()
 
-local SecurityLoader = loadstring(game:HttpGet("https://raw.githubusercontent.com/akmiliadevi/Tugas_Kuliah/refs/heads/main/SecurityLoader.lua"))()
+-- ============================================
+-- IMPROVED SECURITYLOADER WITH RETRY
+-- ============================================
+DebugLog("Starting SecurityLoader initialization...")
+
+local SecurityLoader
+local securityLoaderAttempts = 3
+
+for attempt = 1, securityLoaderAttempts do
+    DebugLog(string.format("SecurityLoader attempt %d/%d", attempt, securityLoaderAttempts))
+    
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/akmiliadevi/Tugas_Kuliah/refs/heads/main/SecurityLoader.lua"))()
+    end)
+    
+    if success and result then
+        SecurityLoader = result
+        print("✅ SecurityLoader loaded successfully")
+        DebugLog("SecurityLoader loaded on attempt " .. attempt)
+        break
+    else
+        warn(string.format("⚠️ SecurityLoader attempt %d/%d failed: %s", 
+            attempt, securityLoaderAttempts, tostring(result)))
+        
+        if attempt < securityLoaderAttempts then
+            DebugLog("Waiting 1 second before retry...")
+            task.wait(1)
+        end
+    end
+end
 
 if not SecurityLoader then
     LoadingNotification.Complete(false, 0, 1)
-    SendNotification("❌ ERROR", "SecurityLoader failed!", 10)
+    SendNotification("❌ ERROR", "SecurityLoader failed after " .. securityLoaderAttempts .. " attempts!", 10)
+    error("FATAL: SecurityLoader could not be loaded")
     return
 end
 
-LoadingNotification.Update(1, 32, "SecurityLoader")
+LoadingNotification.Update(1, 38, "SecurityLoader ✓")
 
+-- ============================================
+-- MODULE LIST
+-- ============================================
 local ModuleList = {
     "Notify", "HideStats", "Webhook", "PingFPSMonitor",
     "instant", "instant2", "blatantv1", "UltraBlatant", "blatantv2", "blatantv2fix", "AutoFavorite",
@@ -334,30 +390,31 @@ local ModuleList = {
     "FreecamModule", "UnlimitedZoomModule", "AntiAFK", "UnlockFPS", "FPSBooster", "DisableRendering", "MovementModule"
 }
 
-totalModules = #ModuleList
+totalModules = #ModuleList + 1 -- +1 untuk SecurityLoader
 
-if totalModules == 0 then
-    LoadingNotification.Complete(false, 0, 0)
-    SendNotification("❌ Error", "Module list empty!", 10)
+if #ModuleList == 0 then
+    LoadingNotification.Complete(false, 1, 1)
+    SendNotification("❌ Error", "Module list is empty!", 10)
     return
 end
 
+DebugLog(string.format("Total modules to load: %d", #ModuleList))
+
+-- ============================================
+-- IMPROVED MODULE LOADING WITH BETTER ERROR HANDLING
+-- ============================================
 local MAX_RETRIES = 3
 local RETRY_DELAY = 1
-local moduleRetryCount = {}
 
 local function LoadModuleWithRetry(moduleName, retryCount)
     retryCount = retryCount or 0
     
-    if not moduleRetryCount[moduleName] then
-        moduleRetryCount[moduleName] = 0
+    if retryCount >= MAX_RETRIES then
+        warn(string.format("❌ Module '%s' failed after %d attempts", moduleName, MAX_RETRIES))
+        return false, "Max retries exceeded"
     end
     
-    moduleRetryCount[moduleName] = moduleRetryCount[moduleName] + 1
-    
-    if moduleRetryCount[moduleName] > 10 then
-        return false
-    end
+    DebugLog(string.format("Loading module '%s' (attempt %d/%d)", moduleName, retryCount + 1, MAX_RETRIES))
     
     local success, result = pcall(function()
         return SecurityLoader.LoadModule(moduleName)
@@ -367,49 +424,114 @@ local function LoadModuleWithRetry(moduleName, retryCount)
         Modules[moduleName] = result
         ModuleStatus[moduleName] = "✅"
         loadedModules = loadedModules + 1
-        moduleRetryCount[moduleName] = nil
+        
+        print(string.format("✅ Module loaded: %s (%d/%d)", 
+            moduleName, loadedModules, #ModuleList))
+        
+        DebugLog(string.format("Module '%s' loaded successfully", moduleName))
         return true
     else
-        if retryCount < MAX_RETRIES then
+        local errorMsg = tostring(result)
+        warn(string.format("⚠️ Module '%s' failed (attempt %d/%d): %s", 
+            moduleName, retryCount + 1, MAX_RETRIES, errorMsg))
+        
+        if retryCount + 1 < MAX_RETRIES then
+            DebugLog(string.format("Retrying module '%s' in %d seconds...", moduleName, RETRY_DELAY))
             task.wait(RETRY_DELAY)
             return LoadModuleWithRetry(moduleName, retryCount + 1)
         else
-            Modules[moduleName] = nil
-            ModuleStatus[moduleName] = "❌"
-            table.insert(failedModules, moduleName)
-            moduleRetryCount[moduleName] = nil
-            return false
+            return false, errorMsg
         end
     end
 end
 
+-- ============================================
+-- LOAD ALL MODULES WITH PROPER PROGRESS TRACKING
+-- ============================================
 local function LoadAllModules()
-    for _, moduleName in ipairs(ModuleList) do
+    print(string.format("🔄 Starting to load %d modules...", #ModuleList))
+    DebugLog("Beginning module loading sequence")
+    
+    for index, moduleName in ipairs(ModuleList) do
         local isCritical = table.find(CRITICAL_MODULES, moduleName) ~= nil
-        LoadingNotification.Update(loadedModules, totalModules, moduleName)
+        local criticalTag = isCritical and " [CRITICAL]" or ""
         
-        local success = LoadModuleWithRetry(moduleName)
+        -- Update progress BEFORE loading (shows what's being loaded)
+        LoadingNotification.Update(loadedModules + 1, totalModules, moduleName .. criticalTag)
         
-        if not success and isCritical then
-            LoadingNotification.Complete(false, loadedModules, totalModules)
-            SendNotification("❌ CRITICAL", moduleName .. " failed!", 10)
-            error("CRITICAL MODULE FAILED: " .. moduleName)
-            return false
+        -- Load module
+        local success, errorMsg = LoadModuleWithRetry(moduleName)
+        
+        if not success then
+            -- Add to failed list
+            table.insert(failedModules, moduleName)
+            ModuleStatus[moduleName] = "❌"
+            
+            -- If critical module fails, stop everything
+            if isCritical then
+                LoadingNotification.Complete(false, loadedModules + 1, totalModules)
+                SendNotification("❌ CRITICAL ERROR", 
+                    string.format("%s failed!\n%s", moduleName, errorMsg or "Unknown error"), 
+                    10)
+                error(string.format("CRITICAL MODULE FAILED: %s - %s", moduleName, errorMsg or "Unknown"))
+                return false
+            else
+                -- Non-critical module failed, just warn and continue
+                warn(string.format("⚠️ Non-critical module '%s' failed, continuing...", moduleName))
+                DebugLog(string.format("Skipping failed non-critical module: %s", moduleName))
+            end
+        end
+        
+        -- Small delay between modules to prevent overwhelming the system
+        if index < #ModuleList then
+            task.wait(0.05)
         end
     end
     
-    LoadingNotification.Complete(true, loadedModules, totalModules)
+    -- Final summary
+    local successRate = math.floor((loadedModules / (#ModuleList)) * 100)
+    local summary = string.format("Loaded: %d/%d (%d%%)", 
+        loadedModules, #ModuleList, successRate)
+    
+    if #failedModules > 0 then
+        warn("⚠️ Failed modules: " .. table.concat(failedModules, ", "))
+    end
+    
+    LoadingNotification.Complete(true, loadedModules + 1, totalModules)
+    
+    print(string.format("✅ Module loading complete! %s", summary))
+    DebugLog("Module loading sequence finished")
     return true
 end
 
+-- ============================================
+-- EXECUTE MODULE LOADING
+-- ============================================
 local loadSuccess = LoadAllModules()
 
 if not loadSuccess then
-    error("Module loading failed")
+    error("FATAL: Module loading failed")
     return
 end
 
+-- Show summary notification if there are failed modules
+if #failedModules > 0 then
+    SendNotification("⚠️ Warning", 
+        string.format("%d module(s) failed to load:\n%s", 
+            #failedModules, 
+            table.concat(failedModules, ", ")), 
+        8)
+end
+
+-- ============================================
+-- MODULE GETTER WITH ERROR HANDLING
+-- ============================================
 local function GetModule(name)
+    if not Modules[name] then
+        warn(string.format("⚠️ Module '%s' not loaded or doesn't exist", name))
+        DebugLog(string.format("GetModule failed: '%s' not found", name))
+        return nil
+    end
     return Modules[name]
 end
 
