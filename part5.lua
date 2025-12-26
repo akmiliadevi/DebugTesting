@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSION
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONunnnn
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -3209,6 +3209,7 @@ end))
 
 -- MINIMIZE SYSTEM (No Animation)
 local icon
+local savedIconPos = UDim2.new(0, 20, 0, 100)
 
 local function createMinimizedIcon()
     if icon then return end
@@ -3216,7 +3217,7 @@ local function createMinimizedIcon()
     icon = new("ImageLabel", {
         Parent = gui,
         Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(0, 20, 0, 100),
+        Position = savedIconPos,
         BackgroundColor3 = colors.bg2,
         BackgroundTransparency = 0.3,
         BorderSizePixel = 0,
@@ -3226,12 +3227,38 @@ local function createMinimizedIcon()
     })
     new("UICorner", {Parent = icon, CornerRadius = UDim.new(0, 10)})
     
+    -- Drag functionality for icon
+    local draggingIcon, dragStartIcon, startPosIcon, dragMovedIcon = false, nil, nil, false
+    
     ConnectionManager:Add(icon.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            win.Visible = true
-            bringToFront()
-            icon:Destroy()
-            icon = nil
+            draggingIcon = true
+            dragMovedIcon = false
+            dragStartIcon = input.Position
+            startPosIcon = icon.Position
+        end
+    end))
+    
+    ConnectionManager:Add(icon.InputChanged:Connect(function(input)
+        if draggingIcon and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStartIcon
+            if math.sqrt(delta.X^2 + delta.Y^2) > 5 then dragMovedIcon = true end
+            icon.Position = UDim2.new(startPosIcon.X.Scale, startPosIcon.X.Offset + delta.X, startPosIcon.Y.Scale, startPosIcon.Y.Offset + delta.Y)
+        end
+    end))
+    
+    ConnectionManager:Add(icon.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if draggingIcon then
+                draggingIcon = false
+                savedIconPos = icon.Position
+                if not dragMovedIcon then
+                    win.Visible = true
+                    bringToFront()
+                    icon:Destroy()
+                    icon = nil
+                end
+            end
         end
     end))
 end
