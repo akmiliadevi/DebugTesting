@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSION
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwe
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
