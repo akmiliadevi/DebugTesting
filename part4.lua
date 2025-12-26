@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSION
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONoooonnnn
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -3189,6 +3189,48 @@ end))
 ConnectionManager:Add(UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = false
+    end
+end))
+
+-- MINIMIZE SYSTEM (No Animation)
+local icon
+
+local function createMinimizedIcon()
+    if icon then return end
+    
+    icon = new("ImageLabel", {
+        Parent = gui,
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(0, 20, 0, 100),
+        BackgroundColor3 = colors.bg2,
+        BackgroundTransparency = 0.3,
+        BorderSizePixel = 0,
+        Image = "rbxassetid://118176705805619",
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 100
+    })
+    new("UICorner", {Parent = icon, CornerRadius = UDim.new(0, 10)})
+    
+    ConnectionManager:Add(icon.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            win.Visible = true
+            bringToFront()
+            icon:Destroy()
+            icon = nil
+        end
+    end))
+end
+
+ConnectionManager:Add(btnMinHeader.MouseButton1Click:Connect(function()
+    win.Visible = false
+    createMinimizedIcon()
+end))
+
+-- HOTKEY TO TOGGLE GUI (F1)
+ConnectionManager:Add(UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F1 then
+        win.Visible = not win.Visible
+        if win.Visible then bringToFront() end
     end
 end))
 
