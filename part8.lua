@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwe
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED 
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -465,6 +465,8 @@ local function LoadModuleWithRetry(moduleName, retryCount)
             task.wait(RETRY_DELAY)
             return LoadModuleWithRetry(moduleName, retryCount + 1)
         else
+            SendNotification("Module Error", moduleName .. " failed to load after " .. MAX_RETRIES .. " attempts", 3)
+            table.insert(failedModules, moduleName)
             return false, errorMsg
         end
     end
@@ -523,6 +525,10 @@ local function LoadAllModules()
     end
     
     LoadingNotification.Complete(true, loadedModules + 1, totalModules)
+    
+    if #failedModules > 0 then
+        SendNotification("Module Warning", "Failed to load: " .. table.concat(failedModules, ", "), 5)
+    end
     
     print(string.format("✅ Module loading complete! %s", summary))
     DebugLog("Module loading sequence finished")
@@ -3444,10 +3450,13 @@ local function ApplyLoadedConfig()
         
         for _, config in ipairs(toggleConfigs) do
             if ToggleReferences[config.ref] then
-                pcall(function()
+                local success, err = pcall(function()
                     local value = ConfigSystem.Get(config.path, config.default)
                     ToggleReferences[config.ref].setOn(value, true)
                 end)
+                if not success then
+                    SendNotification("Toggle Config Error", config.ref .. ": " .. tostring(err), 3)
+                end
             end
         end
     end)
@@ -3455,7 +3464,7 @@ local function ApplyLoadedConfig()
     
     local moduleThread = task.delay(1, function()
         -- Apply module states
-        pcall(function()
+        local success1, err1 = pcall(function()
             if ConfigSystem.Get("InstantFishing.Enabled", false) then
                 local instant = GetModule("instant")
                 local instant2 = GetModule("instant2")
@@ -3470,6 +3479,9 @@ local function ApplyLoadedConfig()
                 end
             end
         end)
+        if not success1 then
+            SendNotification("Config Error", "InstantFishing: " .. tostring(err1), 3)
+        end
         
         pcall(function()
             if ConfigSystem.Get("Support.NoFishingAnimation", false) then
