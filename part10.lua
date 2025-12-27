@@ -2837,7 +2837,7 @@ local function createMinimizedIcon()
         BackgroundColor3=colors.bg2,
         BackgroundTransparency=0.3,  -- Lebih transparan dari 0.2
         BorderSizePixel=0,
-        Image="rbxassetid://111416780887356",
+        Image="rbxassetid://118176705805619",
         ScaleType=Enum.ScaleType.Fit,
         ZIndex=100
     })
