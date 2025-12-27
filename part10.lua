@@ -649,7 +649,6 @@ end
 
 local btnMain = createNavButton("Dashboard", "🏠", "Main", 1)
 local btnTeleport = createNavButton("Teleport", "🌍", "Teleport", 2)
-local btnQuest = createNavButton("Quest", "📜", "Quest", 3)
 local btnShop = createNavButton("Shop", "🛒", "Shop", 3)
 local btnWebhook = createNavButton("Webhook", "🔗", "Webhook", 4)
 local btnCameraView = createNavButton("Camera View", "📷", "CameraView", 3)
@@ -658,7 +657,6 @@ local btnInfo = createNavButton("About", "ℹ️", "Info", 5)
 
 btnMain.MouseButton1Click:Connect(function() switchPage("Main", "Main Dashboard") end)
 btnTeleport.MouseButton1Click:Connect(function() switchPage("Teleport", "Teleport System") end)
-btnQuest.MouseButton1Click:Connect(function() switchPage("Quest", "Auto Quest") end)
 btnShop.MouseButton1Click:Connect(function() switchPage("Shop", "Shop Features") end)
 btnWebhook.MouseButton1Click:Connect(function() switchPage("Webhook", "Webhook Page") end)
 btnCameraView.MouseButton1Click:Connect(function() switchPage("CameraView", "Camera View Settings") end)
