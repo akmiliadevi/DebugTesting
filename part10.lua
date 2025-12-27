@@ -45,8 +45,7 @@ local WalkOnWater = SecurityLoader.LoadModule("WalkOnWater")
 local TeleportModule = SecurityLoader.LoadModule("TeleportModule")
 local TeleportToPlayer = SecurityLoader.LoadModule("TeleportToPlayer")
 local SavedLocation = SecurityLoader.LoadModule("SavedLocation")
-local AutoSell = SecurityLoader.LoadModule("AutoSell")
-local AutoSellTimer = SecurityLoader.LoadModule("AutoSellTimer")
+local AutoSellSystem = SecurityLoader.LoadModule("AutoSellSystem")
 local MerchantSystem = SecurityLoader.LoadModule("MerchantSystem")
 local RemoteBuyer = SecurityLoader.LoadModule("RemoteBuyer")
 local FreecamModule = SecurityLoader.LoadModule("FreecamModule")
@@ -2121,23 +2120,52 @@ end)
 local catSell = makeCategory(shopPage, "Sell All", "💰")
 
 makeButton(catSell, "Sell All Now", function()
-    if AutoSell and AutoSell.SellOnce then
-        AutoSell.SellOnce()
+    if AutoSellSystem.SellOnce() then
+        Notify.Send("Sell All", "✓ Sold successfully!", 2)
+    else
+        Notify.Send("Sell Error", "Failed to sell!", 3)
     end
 end)
 
+-- Auto Sell Timer
 local catTimer = makeCategory(shopPage, "Auto Sell Timer", "⏰")
 
 makeInput(catTimer, "Sell Interval (seconds)", 5, function(value)
-    AutoSellTimer.SetInterval(value)
+    AutoSellSystem.Timer.SetInterval(value)
 end)
 
-makeToggle(catTimer, "Auto Sell Timer", function(on)
-    if AutoSellTimer then
-        if on then
-            AutoSellTimer.Start(AutoSellTimer.Interval)
+makeToggle(catTimer, "Enable Auto Sell Timer", function(on)
+    if on then
+        if AutoSellSystem.Timer.Start() then
+            Notify.Send("Auto Sell Timer", "✓ Started! Interval: " .. AutoSellSystem.Timer.Interval .. "s", 4)
         else
-            AutoSellTimer.Stop()
+            Notify.Send("Error", "Failed to start!", 3)
+        end
+    else
+        if AutoSellSystem.Timer.Stop() then
+            local status = AutoSellSystem.Timer.GetStatus()
+            Notify.Send("Auto Sell Timer", "✓ Stopped! Total: " .. status.sellCount, 4)
+        end
+    end
+end)
+
+-- Auto Sell By Count
+local catCount = makeCategory(shopPage, "Auto Sell By Count", "🎣")
+
+makeInput(catCount, "Target Fish Count", 235, function(value)
+    AutoSellSystem.Count.SetTarget(value)
+end)
+
+makeToggle(catCount, "Enable Auto Sell By Count", function(on)
+    if on then
+        if AutoSellSystem.Count.Start() then
+            Notify.Send("Auto Sell Count", "✓ Started! Target: " .. AutoSellSystem.Count.Target, 4)
+        else
+            Notify.Send("Error", "Failed to start!", 3)
+        end
+    else
+        if AutoSellSystem.Count.Stop() then
+            Notify.Send("Auto Sell Count", "✓ Stopped!", 3)
         end
     end
 end)
