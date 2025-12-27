@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED 
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwefsef
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -1802,22 +1802,6 @@ local fishingDelayValue = savedFishingDelay
 local cancelDelayValue = savedCancelDelay
 local isInstantFishingEnabled = false
 
-local thread1 = task.delay(0.5, function()
-    local instant = GetModule("instant")
-    local instant2 = GetModule("instant2")
-    
-    if instant then
-        instant.Settings.MaxWaitTime = savedFishingDelay
-        instant.Settings.CancelDelay = savedCancelDelay
-    end
-    
-    if instant2 then
-        instant2.Settings.MaxWaitTime = savedFishingDelay
-        instant2.Settings.CancelDelay = savedCancelDelay
-    end
-end)
-ConnectionManager:AddThread(thread1)
-
 makeDropdown(catAutoFishing, "Instant Fishing Mode", "⚡", {"Fast", "Perfect"}, function(mode)
     currentInstantMode = mode
     ConfigSystem.Set("InstantFishing.Mode", mode)
@@ -1859,20 +1843,6 @@ ToggleReferences.InstantFishing = makeToggle(catAutoFishing, "Enable Instant Fis
     end
 end)
 
-local thread2 = task.delay(0.5, function()
-    if savedInstantEnabled and ToggleReferences.InstantFishing then
-        ToggleReferences.InstantFishing.setOn(savedInstantEnabled, true)
-        isInstantFishingEnabled = true
-        
-        local instant = GetModule("instant")
-        local instant2 = GetModule("instant2")
-        
-        if currentInstantMode == "Fast" and instant then instant.Start()
-        elseif currentInstantMode == "Perfect" and instant2 then instant2.Start() end
-    end
-end)
-ConnectionManager:AddThread(thread2)
-
 makeInput(catAutoFishing, "Fishing Delay", savedFishingDelay, function(v)
     fishingDelayValue = v
     ConfigSystem.Set("InstantFishing.FishingDelay", v)
@@ -1903,15 +1873,6 @@ local catBlatantV2 = makeCategory(mainPage, "Blatant Tester", "🎯")
 local savedBlatantTesterCompleteDelay = ConfigSystem.Get("BlatantTester.CompleteDelay", 0.5)
 local savedBlatantTesterCancelDelay = ConfigSystem.Get("BlatantTester.CancelDelay", 0.1)
 
-local thread3 = task.delay(0.5, function()
-    local blatantv2fix = GetModule("blatantv2fix")
-    if blatantv2fix then
-        blatantv2fix.Settings.CompleteDelay = savedBlatantTesterCompleteDelay
-        blatantv2fix.Settings.CancelDelay = savedBlatantTesterCancelDelay
-    end
-end)
-ConnectionManager:AddThread(thread3)
-
 ToggleReferences.BlatantTester = makeToggle(catBlatantV2, "Blatant Tester", function(on)
     ConfigSystem.Set("BlatantTester.Enabled", on)
     
@@ -1941,15 +1902,6 @@ local catBlatantV1 = makeCategory(mainPage, "Blatant V1", "💀")
 local savedBlatantV1CompleteDelay = ConfigSystem.Get("BlatantV1.CompleteDelay", 0.05)
 local savedBlatantV1CancelDelay = ConfigSystem.Get("BlatantV1.CancelDelay", 0.1)
 
-local thread4 = task.delay(0.5, function()
-    local blatantv1 = GetModule("blatantv1")
-    if blatantv1 then
-        blatantv1.Settings.CompleteDelay = savedBlatantV1CompleteDelay
-        blatantv1.Settings.CancelDelay = savedBlatantV1CancelDelay
-    end
-end)
-ConnectionManager:AddThread(thread4)
-
 ToggleReferences.BlatantV1 = makeToggle(catBlatantV1, "Blatant Mode", function(on)
     ConfigSystem.Set("BlatantV1.Enabled", on)
     
@@ -1978,19 +1930,6 @@ local catUltraBlatant = makeCategory(mainPage, "Blatant V2", "⚡")
 
 local savedUltraBlatantCompleteDelay = ConfigSystem.Get("UltraBlatant.CompleteDelay", 0.05)
 local savedUltraBlatantCancelDelay = ConfigSystem.Get("UltraBlatant.CancelDelay", 0.1)
-
-local thread5 = task.delay(0.5, function()
-    local UltraBlatant = GetModule("UltraBlatant")
-    if UltraBlatant then
-        if UltraBlatant.Settings then
-            UltraBlatant.Settings.CompleteDelay = savedUltraBlatantCompleteDelay
-            UltraBlatant.Settings.CancelDelay = savedUltraBlatantCancelDelay
-        elseif UltraBlatant.UpdateSettings then
-            UltraBlatant.UpdateSettings(savedUltraBlatantCompleteDelay, savedUltraBlatantCancelDelay, nil)
-        end
-    end
-end)
-ConnectionManager:AddThread(thread5)
 
 ToggleReferences.UltraBlatant = makeToggle(catUltraBlatant, "Blatant Mode", function(on)
     ConfigSystem.Set("UltraBlatant.Enabled", on)
@@ -2179,14 +2118,6 @@ if AutoFavorite then
         AutoFavorite.EnableVariants(sel) 
         ConfigSystem.Set("AutoFavorite.EnabledVariants", sel) 
     end)
-    
-    local thread6 = task.delay(0.5, function()
-        if tierSys and varSys then
-            tierSys.SelectSpecific(ConfigSystem.Get("AutoFavorite.EnabledTiers", {}))
-            varSys.SelectSpecific(ConfigSystem.Get("AutoFavorite.EnabledVariants", {}))
-        end
-    end)
-    ConnectionManager:AddThread(thread6)
 end
 
 -- Enable Auto Favorite
@@ -2199,14 +2130,6 @@ if AutoFavorite then
             AutoFavorite:Stop()
         end
     end)
-    
-    local thread7 = task.delay(0.5, function()
-        local enabled = ConfigSystem.Get("AutoFavorite.Enabled", false)
-        if enabled and ToggleReferences.AutoFavorite then
-            ToggleReferences.AutoFavorite.setOn(enabled, true)
-        end
-    end)
-    ConnectionManager:AddThread(thread7)
 end
 
 -- Auto Totem
@@ -2839,15 +2762,6 @@ ToggleReferences.Webhook = makeToggle(catWebhook, "Enable Webhook" .. (not isWeb
     end
 end)
 
-if not isWebhookSupported then
-    local thread7 = task.delay(0.5, function()
-        if ToggleReferences.Webhook then
-            ToggleReferences.Webhook.setOn(false, true)
-        end
-    end)
-    ConnectionManager:AddThread(thread7)
-end
-
 -- ============================================
 -- CAMERA VIEW PAGE
 -- ============================================
@@ -3460,7 +3374,6 @@ local function ApplyLoadedConfig()
             end
         end
     end)
-    ConnectionManager:AddThread(applyThread)
     
     local moduleThread = task.delay(1, function()
         -- Apply module states
@@ -3683,7 +3596,6 @@ local function ApplyLoadedConfig()
             end
         end)
     end)
-    ConnectionManager:AddThread(moduleThread)
 end
 
 local configThread = task.delay(1.5, function()
@@ -3691,7 +3603,6 @@ local configThread = task.delay(1.5, function()
         ApplyLoadedConfig()
     end)
 end)
-ConnectionManager:AddThread(configThread)
 
 -- ============================================
 -- GUI CLEANUP & DESTROY HANDLER (Optimized)
