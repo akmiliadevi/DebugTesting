@@ -1,5 +1,5 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwweswd
--- Core Setup & Module Loading System (FIXED)
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwed
+-- Core Setup & Module Loading System (FIXED)d
 
 repeat task.wait() until game:IsLoaded()
 
@@ -3605,21 +3605,6 @@ local function ApplyLoadedConfig()
         end)
     end)
 end
-
-local configThread = task.delay(1.5, function()
-    pcall(function()
-        ApplyLoadedConfig()
-    end)
-end)
-
--- ============================================
--- GUI CLEANUP & DESTROY HANDLER (Optimized)
--- ============================================
-local function CleanupGUI()
-    -- Cancel pending auto-save dan force save jika ada perubahan
-    if ConfigSystem then
-        ConfigSystem.Cleanup()  -- Ini akan cancel timer dan force save jika dirty
-    end
     
     -- Cancel player update task
     if playerUpdateTask then
