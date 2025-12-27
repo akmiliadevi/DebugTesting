@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwefsef
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwweswd
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -2005,16 +2005,18 @@ end)
 local catSupport = makeCategory(mainPage, "Support Features", "🛠️")
 
 ToggleReferences.NoFishingAnimation = makeToggle(catSupport, "No Fishing Animation", function(on)
-    SetConfigValue("Support.NoFishingAnimation", on)
+    ConfigSystem.Set("Support.NoFishingAnimation", on)
     
     local NoFishingAnimation = GetModule("NoFishingAnimation")
     if NoFishingAnimation then
         if on then NoFishingAnimation.StartWithDelay() else NoFishingAnimation.Stop() end
+    else
+        SendNotification("Module Error", "NoFishingAnimation module not loaded!", 3)
     end
 end)
 
 ToggleReferences.PingFPSMonitor = makeToggle(catSupport, "Ping & FPS Monitor", function(on)
-    SetConfigValue("Support.PingFPSMonitor", on)
+    ConfigSystem.Set("Support.PingFPSMonitor", on)
     
     local PingFPSMonitor = GetModule("PingFPSMonitor")
     if PingFPSMonitor then
@@ -2023,24 +2025,30 @@ ToggleReferences.PingFPSMonitor = makeToggle(catSupport, "Ping & FPS Monitor", f
         else 
             PingFPSMonitor:Hide()
         end
+    else
+        SendNotification("Module Error", "PingFPSMonitor module not loaded!", 3)
     end
 end)
 
 ToggleReferences.LockPosition = makeToggle(catSupport, "Lock Position", function(on)
-    SetConfigValue("Support.LockPosition", on)
+    ConfigSystem.Set("Support.LockPosition", on)
     
     local LockPosition = GetModule("LockPosition")
     if LockPosition then
         if on then LockPosition.Start() else LockPosition.Stop() end
+    else
+        SendNotification("Module Error", "LockPosition module not loaded!", 3)
     end
 end)
 
 ToggleReferences.AutoEquipRod = makeToggle(catSupport, "Auto Equip Rod", function(on)
-    SetConfigValue("Support.AutoEquipRod", on)
+    ConfigSystem.Set("Support.AutoEquipRod", on)
     
     local AutoEquipRod = GetModule("AutoEquipRod")
     if AutoEquipRod then
         if on then AutoEquipRod.Start() else AutoEquipRod.Stop() end
+    else
+        SendNotification("Module Error", "AutoEquipRod module not loaded!", 3)
     end
 end)
 
