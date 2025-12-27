@@ -61,8 +61,9 @@ local PingFPSMonitor = SecurityLoader.LoadModule("PingFPSMonitor")
 local DisableRendering = SecurityLoader.LoadModule("DisableRendering")
 local MovementModule = SecurityLoader.LoadModule("MovementModule")
 local AutoFavorite = SecurityLoader.LoadModule("AutoFavorite")
+local WebhookModule = SecurityLoader.LoadModule("Webhook")
+local HideStats = SecurityLoader.LoadModule("HideStats")
 
--- Continue with rest of your GUI code...
 print("✅ All modules loaded securely!")
 
 -- Galaxy Color Palette
@@ -1810,6 +1811,7 @@ end)
 
 local catAutoFav = makeCategory(mainPage, "Auto Favorite", "⭐")
 
+-- State tracking
 local autoFavEnabled = false
 local selectedTiers = {}
 local selectedVariants = {}
@@ -1821,10 +1823,6 @@ local tierDropdown = makeMultiSelectDropdown(
     AutoFavorite.GetAllTiers(),
     function(selected)
         selectedTiers = selected
-        if autoFavEnabled then
-            AutoFavorite.ClearTiers()
-            AutoFavorite.EnableTiers(selectedTiers)
-        end
     end
 )
 
@@ -1835,10 +1833,6 @@ local variantDropdown = makeMultiSelectDropdown(
     AutoFavorite.GetAllVariants(),
     function(selected)
         selectedVariants = selected
-        if autoFavEnabled then
-            AutoFavorite.ClearVariants()
-            AutoFavorite.EnableVariants(selectedVariants)
-        end
     end
 )
 
@@ -1847,9 +1841,11 @@ makeToggle(catAutoFav, "Enable Auto Favorite", function(on)
     autoFavEnabled = on
     
     if on then
+        -- Clear dulu untuk reset
         AutoFavorite.ClearTiers()
         AutoFavorite.ClearVariants()
         
+        -- Apply selections
         if #selectedTiers > 0 then
             AutoFavorite.EnableTiers(selectedTiers)
         end
@@ -1858,6 +1854,7 @@ makeToggle(catAutoFav, "Enable Auto Favorite", function(on)
             AutoFavorite.EnableVariants(selectedVariants)
         end
         
+        -- ✅ BARU Start setelah settings di-apply
         AutoFavorite:Start()
         
         local tierCount = #selectedTiers
@@ -1868,7 +1865,10 @@ makeToggle(catAutoFav, "Enable Auto Favorite", function(on)
             4
         )
     else
+        -- ✅ Stop dan clear settings
         AutoFavorite:Stop()
+        AutoFavorite.ClearTiers()
+        AutoFavorite.ClearVariants()
         Notify.Send("Auto Favorite", "✓ Dimatikan!", 3)
     end
 end)
@@ -1891,61 +1891,78 @@ makeButton(catAutoTotem, "Auto Totem 3X", function()
     end
 end)
 
+-- ============================================
+-- SKIN ANIMATION CATEGORY (REFACTORED)
+-- ============================================
 local catSkin = makeCategory(mainPage, "Skin Animation", "✨")
 
--- Button: Eclipse Katana
-makeButton(catSkin, "⚔️ Eclipse Katana", function()
-    local success = SkinAnimation.SwitchSkin("Eclipse")
-    if success then
-        Notify.Send("Skin Animation", "⚔️ Eclipse Katana diaktifkan!\n• RodThrow: 1.4x (FASTEST CAST!)", 4)
-        
-        -- Auto enable jika belum aktif
-        if not SkinAnimation.IsEnabled() then
-            SkinAnimation.Enable()
-        end
-    else
-        Notify.Send("Skin Animation", "⚠ Gagal mengganti skin!", 3)
-    end
-end)
+-- State tracking
+local skinAnimEnabled = false
+local selectedSkin = nil
 
--- Button: Holy Trident
-makeButton(catSkin, "🔱 Holy Trident", function()
-    local success = SkinAnimation.SwitchSkin("HolyTrident")
-    if success then
-        Notify.Send("Skin Animation", "🔱 Holy Trident diaktifkan!\n• RodThrow: 1.3x\n• FishCaught: 1.2x", 4)
-        
-        -- Auto enable jika belum aktif
-        if not SkinAnimation.IsEnabled() then
-            SkinAnimation.Enable()
-        end
-    else
-        Notify.Send("Skin Animation", "⚠ Gagal mengganti skin!", 3)
-    end
-end)
+-- Skin info mapping
+local skinInfo = {
+    ["⚔️ Eclipse Katana"] = {
+        id = "Eclipse",
+        description = "• RodThrow: 1.4x (FASTEST CAST!)"
+    },
+    ["🔱 Holy Trident"] = {
+        id = "HolyTrident",
+        description = "• RodThrow: 1.3x\n• FishCaught: 1.2x"
+    },
+    ["💀 Soul Scythe"] = {
+        id = "SoulScythe",
+        description = "• StartRodCharge: 1.4x (FASTEST CHARGE!)\n• FishCaught: 1.2x"
+    }
+}
 
--- Button: Soul Scythe
-makeButton(catSkin, "💀 Soul Scythe", function()
-    local success = SkinAnimation.SwitchSkin("SoulScythe")
-    if success then
-        Notify.Send("Skin Animation", "💀 Soul Scythe diaktifkan!\n• StartRodCharge: 1.4x (FASTEST CHARGE!)\n• FishCaught: 1.2x", 4)
-        
-        -- Auto enable jika belum aktif
-        if not SkinAnimation.IsEnabled() then
-            SkinAnimation.Enable()
-        end
-    else
-        Notify.Send("Skin Animation", "⚠ Gagal mengganti skin!", 3)
-    end
-end)
+-- Dropdown untuk memilih skin
+makeDropdown(
+    catSkin,
+    "Select Skin",
+    "✨",
+    {"⚔️ Eclipse Katana", "🔱 Holy Trident", "💀 Soul Scythe"},
+    function(selected)
+        selectedSkin = selected
+        -- ❌ JANGAN switch skin di sini
+        -- Hanya simpan selection saja
+        print("🎨 Skin selected: " .. selected)
+    end,
+    "SkinAnimationDropdown"
+)
 
--- Toggle: Enable/Disable Skin Animation
+-- Toggle Enable/Disable Skin Animation
 makeToggle(catSkin, "Enable Skin Animation", function(on)
+    skinAnimEnabled = on
+    
     if on then
-        local success = SkinAnimation.Enable()
-        if success then
-            local currentSkin = SkinAnimation.GetCurrentSkin()
-            local icon = currentSkin == "Eclipse" and "⚔️" or (currentSkin == "HolyTrident" and "🔱" or "💀")
-            Notify.Send("Skin Animation", "✓ " .. icon .. " " .. currentSkin .. " aktif!", 4)
+        if not selectedSkin then
+            Notify.Send("Skin Animation ⚠️", "Pilih skin terlebih dahulu!", 3)
+            return
+        end
+        
+        -- Get skin info
+        local skinData = skinInfo[selectedSkin]
+        if not skinData then
+            Notify.Send("Skin Animation ⚠️", "Skin tidak valid!", 3)
+            return
+        end
+        
+        -- Switch skin
+        local success = SkinAnimation.SwitchSkin(skinData.id)
+        if not success then
+            Notify.Send("Skin Animation", "⚠ Gagal mengganti skin!", 3)
+            return
+        end
+        
+        -- Enable animation
+        local enableSuccess = SkinAnimation.Enable()
+        if enableSuccess then
+            Notify.Send(
+                "Skin Animation", 
+                selectedSkin .. " diaktifkan!\n" .. skinData.description, 
+                4
+            )
         else
             Notify.Send("Skin Animation", "⚠ Sudah aktif!", 3)
         end
