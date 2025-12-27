@@ -1,4 +1,4 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwedwdwd
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED V
 -- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
@@ -1795,10 +1795,10 @@ local ToggleReferences = {}
 -- ============================================
 local catAutoFishing = makeCategory(mainPage, "Auto Fishing", "🎣")
 
-local savedInstantMode = ConfigSystem.Get("InstantFishing.Mode", "Fast")
-local savedFishingDelay = ConfigSystem.Get("InstantFishing.FishingDelay", 1.30)
-local savedCancelDelay = ConfigSystem.Get("InstantFishing.CancelDelay", 0.19)
-local savedInstantEnabled = ConfigSystem.Get("InstantFishing.Enabled", false)
+local savedInstantMode = ConfigSystem and ConfigSystem.Get("InstantFishing.Mode", "Fast") or "Fast"
+local savedFishingDelay = ConfigSystem and ConfigSystem.Get("InstantFishing.FishingDelay", 1.30) or 1.30
+local savedCancelDelay = ConfigSystem and ConfigSystem.Get("InstantFishing.CancelDelay", 0.19) or 0.19
+local savedInstantEnabled = ConfigSystem and ConfigSystem.Get("InstantFishing.Enabled", false) or false
 
 local currentInstantMode = savedInstantMode
 local fishingDelayValue = savedFishingDelay
@@ -1807,32 +1807,36 @@ local isInstantFishingEnabled = false
 
 makeDropdown(catAutoFishing, "Instant Fishing Mode", "⚡", {"Fast", "Perfect"}, function(mode)
     currentInstantMode = mode
-    ConfigSystem.Set("InstantFishing.Mode", mode)
+    if ConfigSystem then ConfigSystem.Set("InstantFishing.Mode", mode) end
     
     local instant = GetModule("instant")
     local instant2 = GetModule("instant2")
     
-    if instant then instant.Stop() end
-    if instant2 then instant2.Stop() end
+    if instant then pcall(function() instant.Stop() end) end
+    if instant2 then pcall(function() instant2.Stop() end) end
     
     if instant then
-        instant.Settings.MaxWaitTime = fishingDelayValue
-        instant.Settings.CancelDelay = cancelDelayValue
+        pcall(function()
+            instant.Settings.MaxWaitTime = fishingDelayValue
+            instant.Settings.CancelDelay = cancelDelayValue
+        end)
     end
     if instant2 then
-        instant2.Settings.MaxWaitTime = fishingDelayValue
-        instant2.Settings.CancelDelay = cancelDelayValue
+        pcall(function()
+            instant2.Settings.MaxWaitTime = fishingDelayValue
+            instant2.Settings.CancelDelay = cancelDelayValue
+        end)
     end
     
     if isInstantFishingEnabled then
-        if mode == "Fast" and instant then instant.Start()
-        elseif mode == "Perfect" and instant2 then instant2.Start() end
+        if mode == "Fast" and instant then pcall(function() instant.Start() end)
+        elseif mode == "Perfect" and instant2 then pcall(function() instant2.Start() end) end
     end
 end, "InstantFishingMode", savedInstantMode)
 
 ToggleReferences.InstantFishing = makeToggle(catAutoFishing, "Enable Instant Fishing", function(on)
     isInstantFishingEnabled = on
-    ConfigSystem.Set("InstantFishing.Enabled", on)
+    if ConfigSystem then ConfigSystem.Set("InstantFishing.Enabled", on) end
     
     local instant = GetModule("instant")
     local instant2 = GetModule("instant2")
@@ -1848,22 +1852,22 @@ end)
 
 makeInput(catAutoFishing, "Fishing Delay", savedFishingDelay, function(v)
     fishingDelayValue = v
-    ConfigSystem.Set("InstantFishing.FishingDelay", v)
+    if ConfigSystem then ConfigSystem.Set("InstantFishing.FishingDelay", v) end
     
     local instant = GetModule("instant")
     local instant2 = GetModule("instant2")
-    if instant then instant.Settings.MaxWaitTime = v end
-    if instant2 then instant2.Settings.MaxWaitTime = v end
+    if instant then pcall(function() instant.Settings.MaxWaitTime = v end) end
+    if instant2 then pcall(function() instant2.Settings.MaxWaitTime = v end) end
 end)
 
 makeInput(catAutoFishing, "Cancel Delay", savedCancelDelay, function(v)
     cancelDelayValue = v
-    ConfigSystem.Set("InstantFishing.CancelDelay", v)
+    if ConfigSystem then ConfigSystem.Set("InstantFishing.CancelDelay", v) end
     
     local instant = GetModule("instant")
     local instant2 = GetModule("instant2")
-    if instant then instant.Settings.CancelDelay = v end
-    if instant2 then instant2.Settings.CancelDelay = v end
+    if instant then pcall(function() instant.Settings.CancelDelay = v end) end
+    if instant2 then pcall(function() instant2.Settings.CancelDelay = v end) end
 end)
 
 -- ============================================
@@ -1873,8 +1877,8 @@ end)
 -- Blatant Tester
 local catBlatantV2 = makeCategory(mainPage, "Blatant Tester", "🎯")
 
-local savedBlatantTesterCompleteDelay = ConfigSystem.Get("BlatantTester.CompleteDelay", 0.5)
-local savedBlatantTesterCancelDelay = ConfigSystem.Get("BlatantTester.CancelDelay", 0.1)
+local savedBlatantTesterCompleteDelay = ConfigSystem and ConfigSystem.Get("BlatantTester.CompleteDelay", 0.5) or 0.5
+local savedBlatantTesterCancelDelay = ConfigSystem and ConfigSystem.Get("BlatantTester.CancelDelay", 0.1) or 0.1
 
 ToggleReferences.BlatantTester = makeToggle(catBlatantV2, "Blatant Tester", function(on)
     ConfigSystem.Set("BlatantTester.Enabled", on)
@@ -1902,8 +1906,8 @@ end)
 -- Blatant V1
 local catBlatantV1 = makeCategory(mainPage, "Blatant V1", "💀")
 
-local savedBlatantV1CompleteDelay = ConfigSystem.Get("BlatantV1.CompleteDelay", 0.05)
-local savedBlatantV1CancelDelay = ConfigSystem.Get("BlatantV1.CancelDelay", 0.1)
+local savedBlatantV1CompleteDelay = ConfigSystem and ConfigSystem.Get("BlatantV1.CompleteDelay", 0.05) or 0.05
+local savedBlatantV1CancelDelay = ConfigSystem and ConfigSystem.Get("BlatantV1.CancelDelay", 0.1) or 0.1
 
 ToggleReferences.BlatantV1 = makeToggle(catBlatantV1, "Blatant Mode", function(on)
     ConfigSystem.Set("BlatantV1.Enabled", on)
@@ -1931,8 +1935,8 @@ end)
 -- Ultra Blatant V2
 local catUltraBlatant = makeCategory(mainPage, "Blatant V2", "⚡")
 
-local savedUltraBlatantCompleteDelay = ConfigSystem.Get("UltraBlatant.CompleteDelay", 0.05)
-local savedUltraBlatantCancelDelay = ConfigSystem.Get("UltraBlatant.CancelDelay", 0.1)
+local savedUltraBlatantCompleteDelay = ConfigSystem and ConfigSystem.Get("UltraBlatant.CompleteDelay", 0.05) or 0.05
+local savedUltraBlatantCancelDelay = ConfigSystem and ConfigSystem.Get("UltraBlatant.CancelDelay", 0.1) or 0.1
 
 ToggleReferences.UltraBlatant = makeToggle(catUltraBlatant, "Blatant Mode", function(on)
     ConfigSystem.Set("UltraBlatant.Enabled", on)
@@ -2021,7 +2025,7 @@ ToggleReferences.NoFishingAnimation = makeToggle(catSupport, "No Fishing Animati
 end)
 
 ToggleReferences.PingFPSMonitor = makeToggle(catSupport, "Ping & FPS Monitor", function(on)
-    ConfigSystem.Set("Support.PingFPSMonitor", on)
+    if ConfigSystem then ConfigSystem.Set("Support.PingFPSMonitor", on) end
     
     local PingFPSMonitor = GetModule("PingFPSMonitor")
     if PingFPSMonitor then
@@ -2038,7 +2042,7 @@ ToggleReferences.PingFPSMonitor = makeToggle(catSupport, "Ping & FPS Monitor", f
 end)
 
 ToggleReferences.LockPosition = makeToggle(catSupport, "Lock Position", function(on)
-    ConfigSystem.Set("Support.LockPosition", on)
+    if ConfigSystem then ConfigSystem.Set("Support.LockPosition", on) end
     
     local LockPosition = GetModule("LockPosition")
     if LockPosition then
@@ -2051,7 +2055,7 @@ ToggleReferences.LockPosition = makeToggle(catSupport, "Lock Position", function
 end)
 
 ToggleReferences.AutoEquipRod = makeToggle(catSupport, "Auto Equip Rod", function(on)
-    ConfigSystem.Set("Support.AutoEquipRod", on)
+    if ConfigSystem then ConfigSystem.Set("Support.AutoEquipRod", on) end
     
     local AutoEquipRod = GetModule("AutoEquipRod")
     if AutoEquipRod then
