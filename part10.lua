@@ -1,4 +1,4 @@
--- LynxGUI_v2.3.lua - Galaxy Edition (REFINED)ss
+-- LynxGUI_v2.3.lua - Galaxy Edition (REFINED)
 -- BAGIAN 1: Setup, Core Functions, Window Structure
 -- FREE NOT FOR SALE
 
@@ -2567,8 +2567,15 @@ local currentFakeLevel = "1"
 
 -- Toggle Enable Hide Stats
 makeToggle(catHideStats, "Enable Hide Stats", function(on)
-    if not hideStatsLoaded or not HideStats then
-        Notify.Send("Hide Stats", "Module Hide Stats belum dimuat, tunggu sebentar...", 3)
+    if not HideStats then
+        Notify.Send("Error ❌", "Hide Stats module tidak ditemukan!", 3)
+        warn("❌ HideStats module is nil - Module failed to load")
+        return
+    end
+    
+    if not HideStats.Enable or not HideStats.Disable then
+        Notify.Send("Error ❌", "Hide Stats module tidak valid!", 3)
+        warn("❌ HideStats missing Enable/Disable functions")
         return
     end
     
@@ -2590,11 +2597,11 @@ makeTextBox(
     function(value)
         currentFakeName = value
         
-        if hideStatsLoaded and HideStats then
+        if HideStats and HideStats.SetFakeName then
             HideStats.SetFakeName(value)
             Notify.Send("Hide Stats 👤", "Fake name: " .. value, 2)
         else
-            Notify.Send("Warning", "Module belum loaded", 3)
+            Notify.Send("Warning ⚠️", "Hide Stats module belum siap!", 3)
         end
     end
 )
@@ -2608,11 +2615,11 @@ makeTextBox(
     function(value)
         currentFakeLevel = value
         
-        if hideStatsLoaded and HideStats then
+        if HideStats and HideStats.SetFakeLevel then
             HideStats.SetFakeLevel(value)
             Notify.Send("Hide Stats 📊", "Fake level: " .. value, 2)
         else
-            Notify.Send("Warning", "Module belum loaded", 3)
+            Notify.Send("Warning ⚠️", "Hide Stats module belum siap!", 3)
         end
     end
 )
@@ -2636,11 +2643,11 @@ makeTextBox(
     "",
     function(value)
         currentWebhookURL = value
-        if webhookLoadSuccess and WebhookModule then
+        if WebhookModule and WebhookModule.SetWebhookURL then
             WebhookModule:SetWebhookURL(value)
             Notify.Send("Webhook 🔔", "Webhook URL tersimpan!", 2)
         else
-            Notify.Send("Warning", "Module belum loaded, URL tersimpan sementara", 3)
+            Notify.Send("Warning ⚠️", "Webhook module belum siap!", 3)
         end
     end
 )
@@ -2653,7 +2660,7 @@ makeTextBox(
     "",
     function(value)
         currentDiscordID = value
-        if webhookLoadSuccess and WebhookModule then
+        if WebhookModule and WebhookModule.SetDiscordUserID then
             WebhookModule:SetDiscordUserID(value)
             if value ~= "" then
                 Notify.Send("Webhook 🔔", "Discord ID tersimpan!", 2)
@@ -2669,7 +2676,7 @@ local rarityDropdown = makeMultiSelectDropdown(
     {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "SECRET"},
     function(selected)
         selectedRarities = selected
-        if webhookLoadSuccess and WebhookModule then
+        if WebhookModule and WebhookModule.SetEnabledRarities then
             WebhookModule:SetEnabledRarities(selectedRarities)
         end
         
@@ -2682,8 +2689,15 @@ local rarityDropdown = makeMultiSelectDropdown(
 
 -- Toggle Enable Webhook
 makeToggle(catWebhook, "Enable Webhook", function(on)
-    if not webhookLoadSuccess or not WebhookModule then
-        Notify.Send("Error ❌", "Webhook module belum di-load!", 3)
+    if not WebhookModule then
+        Notify.Send("Error ❌", "Webhook module tidak ditemukan!", 3)
+        warn("❌ WebhookModule is nil - Module failed to load")
+        return
+    end
+    
+    if not WebhookModule.Start or not WebhookModule.Stop then
+        Notify.Send("Error ❌", "Webhook module tidak valid!", 3)
+        warn("❌ WebhookModule missing Start/Stop functions")
         return
     end
     
@@ -2712,8 +2726,8 @@ end)
 
 -- Button: Test Webhook Connection
 makeButton(catWebhook, "Test Webhook Connection", function()
-    if not webhookLoadSuccess or not WebhookModule then
-        Notify.Send("Error ❌", "Webhook module belum di-load!", 3)
+    if not WebhookModule then
+        Notify.Send("Error ❌", "Webhook module tidak ditemukan!", 3)
         return
     end
     
