@@ -1,4 +1,4 @@
--- LynxGUI_v2.3.lua - Galaxy Edition (REFINED)
+-- LynxGUI_v2.3.lua - Galaxy Edition (REFINED)ss
 -- BAGIAN 1: Setup, Core Functions, Window Structure
 -- FREE NOT FOR SALE
 
