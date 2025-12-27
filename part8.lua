@@ -1,5 +1,5 @@
--- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwed
--- Core Setup & Module Loading System (FIXED)d
+-- LynxGUI v2.3.1 Performance Optimized - MEMORY OPTIMIZED VERSIONwwedwdwd
+-- Core Setup & Module Loading System (FIXED)
 
 repeat task.wait() until game:IsLoaded()
 
@@ -1780,7 +1780,10 @@ end
 -- ============================================
 -- CONFIG SYSTEM (Optimized)
 -- ============================================
-local ConfigSystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/akmiliadevi/Tugas_Kuliah/refs/heads/main/save2.lua"))()
+local ConfigSystem
+pcall(function()
+    ConfigSystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/akmiliadevi/Tugas_Kuliah/refs/heads/main/save2.lua"))()
+end)
 
 -- ============================================
 -- TOGGLE REFERENCES
@@ -1835,11 +1838,11 @@ ToggleReferences.InstantFishing = makeToggle(catAutoFishing, "Enable Instant Fis
     local instant2 = GetModule("instant2")
     
     if on then
-        if currentInstantMode == "Fast" and instant then instant.Start()
-        elseif currentInstantMode == "Perfect" and instant2 then instant2.Start() end
+        if currentInstantMode == "Fast" and instant then pcall(function() instant.Start() end)
+        elseif currentInstantMode == "Perfect" and instant2 then pcall(function() instant2.Start() end) end
     else
-        if instant then instant.Stop() end
-        if instant2 then instant2.Stop() end
+        if instant then pcall(function() instant.Stop() end) end
+        if instant2 then pcall(function() instant2.Stop() end) end
     end
 end)
 
@@ -2005,11 +2008,13 @@ end)
 local catSupport = makeCategory(mainPage, "Support Features", "🛠️")
 
 ToggleReferences.NoFishingAnimation = makeToggle(catSupport, "No Fishing Animation", function(on)
-    ConfigSystem.Set("Support.NoFishingAnimation", on)
+    if ConfigSystem then ConfigSystem.Set("Support.NoFishingAnimation", on) end
     
     local NoFishingAnimation = GetModule("NoFishingAnimation")
     if NoFishingAnimation then
-        if on then NoFishingAnimation.StartWithDelay() else NoFishingAnimation.Stop() end
+        pcall(function()
+            if on then NoFishingAnimation.StartWithDelay() else NoFishingAnimation.Stop() end
+        end)
     else
         SendNotification("Module Error", "NoFishingAnimation module not loaded!", 3)
     end
@@ -2020,11 +2025,13 @@ ToggleReferences.PingFPSMonitor = makeToggle(catSupport, "Ping & FPS Monitor", f
     
     local PingFPSMonitor = GetModule("PingFPSMonitor")
     if PingFPSMonitor then
-        if on then 
-            PingFPSMonitor:Show()
-        else 
-            PingFPSMonitor:Hide()
-        end
+        pcall(function()
+            if on then 
+                PingFPSMonitor:Show()
+            else 
+                PingFPSMonitor:Hide()
+            end
+        end)
     else
         SendNotification("Module Error", "PingFPSMonitor module not loaded!", 3)
     end
@@ -2035,7 +2042,9 @@ ToggleReferences.LockPosition = makeToggle(catSupport, "Lock Position", function
     
     local LockPosition = GetModule("LockPosition")
     if LockPosition then
-        if on then LockPosition.Start() else LockPosition.Stop() end
+        pcall(function()
+            if on then LockPosition.Start() else LockPosition.Stop() end
+        end)
     else
         SendNotification("Module Error", "LockPosition module not loaded!", 3)
     end
@@ -2046,7 +2055,9 @@ ToggleReferences.AutoEquipRod = makeToggle(catSupport, "Auto Equip Rod", functio
     
     local AutoEquipRod = GetModule("AutoEquipRod")
     if AutoEquipRod then
-        if on then AutoEquipRod.Start() else AutoEquipRod.Stop() end
+        pcall(function()
+            if on then AutoEquipRod.Start() else AutoEquipRod.Stop() end
+        end)
     else
         SendNotification("Module Error", "AutoEquipRod module not loaded!", 3)
     end
